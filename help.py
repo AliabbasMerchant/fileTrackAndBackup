@@ -26,16 +26,6 @@ def get_size(dir_dict: dict) -> int:
     return size
 
 
-# def to_gmt(timestamp: float, convert: bool = True) -> float:
-#     if convert:
-#         return timestamp
-
-
-# def to_local_time(timestamp: float, convert: bool = True) -> float:
-#     if convert:
-#         return timestamp
-
-
 def write_to_json_file(dictionary: dict, filename: str) -> None:
     # os.open(filename, os.O_CREAT)
     with open(filename, 'w') as outfile:
@@ -48,7 +38,7 @@ def read_from_json_file(filename: str) -> dict:
     return data
 
 
-def get_ignore_list():
+def get_ignore_list() -> None:
     with open("{}/{}/{}".format(constants.file_tb_path, constants.save_folder_name, constants.ignore_file), 'r') as f:
         for line in f:
             constants.ignore_regex_list.append(line)
@@ -72,8 +62,6 @@ def get_size_format(size: int) -> str:
 
 
 def to_be_ignored(source: str) -> bool:
-    source = source.replace('////', '/')  # safe-side
-    source = source.replace('///', '/')  # safe-side
     source = source.replace('//', '/')
     for regex in constants.ignore_regex_list:
         if re.search(regex, source):

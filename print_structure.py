@@ -26,9 +26,9 @@ def print_dir(data: dict, level: int) -> None:
             print_dir(data[name]['dirs'], level + 1)
 
 
-def print_structure(path: str, dir_path: str, track_first: bool = True, raw: bool = False) -> None:
+def print_structure(path: str, dir_path: str, track_first: bool = True, raw: bool = False, ignore: bool = False) -> None:
     if track_first:
-        track(path, dir_path, output=False)
+        track(path, dir_path, output=False, ignore=ignore)
     if os.path.isfile(path):
         filename = path.split('/')[-1]
         print('Name: {}'.format(filename))
