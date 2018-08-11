@@ -5,6 +5,7 @@ from pprint import pprint as pp
 import datetime
 import copy
 
+
 def print_dir(data: dict, level: int) -> None:
     for name in data.keys():
         if data[name]['type'] == 'file':
@@ -12,36 +13,37 @@ def print_dir(data: dict, level: int) -> None:
                 for i in range(3*(level-1)):
                     print(' ', end='')
                 print('|__', end='')
-            print(name, "(Size: {} kB, Edit_Time: {})"
-                  .format(data[name]['size'] / 1000, datetime.datetime.fromtimestamp(data[name]['edit_time'])))
+            print(name, "(Size: {}, Edit_Time: {})"
+                  .format(get_size_format(data[name]['size']),
+                          datetime.datetime.fromtimestamp(data[name]['edit_time'])))
     for name in data.keys():
         if data[name]['type'] == 'dir':
             if level > 0:
                 for i in range(3*(level-1)):
                     print(' ', end='')
                 print('|__', end='')
-            print(name, "(Size: {} kB, Edit_Time: {})"
-                  .format(data[name]['size'] / 1000, datetime.datetime.fromtimestamp(data[name]['edit_time'])))
+            print(name, "(Size: {}, Edit_Time: {})"
+                  .format(get_size_format(data[name]['size']),
+                          datetime.datetime.fromtimestamp(data[name]['edit_time'])))
             print_dir(data[name]['dirs'], level + 1)
 
 
-def print_structure(path: str, all:bool=False, track_first: bool=True, raw: bool=False) -> None:
+def print_structure(path: str, dir_path: str, all: bool=False, track_first: bool=True, raw: bool=False) -> None:
     if track_first:
-        track(path, output=False)
+        track(path, dir_path, output=False)
     if os.path.isfile(path):
-        filename = path.split('/')[-1].split('.')[0]
-        print(filename, " :", os.stat(filename).st_size, "bytes")
+        filename = path.split('/')[-1]
+        print('Name: {}'.format(filename))
+        print('Track Time: {}'.format(time.time()))
+        print('Size: {}'.format(get_size_format(os.stat(filename).st_size)))
+        print('Path: {}'.format(path))
+        print('Edit_Time: {}'.format(datetime.datetime.fromtimestamp(get_time(os.stat(path)))))
     elif os.path.isdir(path):
-        filename = path.split('/')[-1] + '.json'
-        stop = False
+        filename = path.split('/')[-1].strip('.') + '.json'
         try:
-            data = read_from_json_file(path + '/' + constants.save_folder_name + '/' + filename)
+            data = read_from_json_file(dir_path + '/' + constants.save_folder_name + '/' + filename)
         except FileNotFoundError:
-            stop = True
-            print("The folder is not tracked. Please track it first")
-        if stop:
-            raise Exception()
-        # data = data[max([int(x) for x in data.keys()])]
+            raise FileNotFoundError("The folder is not tracked. Please track it first")
         if raw:
             if all:
                 pp(data)
@@ -56,7 +58,7 @@ def print_structure(path: str, all:bool=False, track_first: bool=True, raw: bool
                     print('Index: {}'.format(i))
                     print('Name: {}'.format(data['name']))
                     print('Track Time: {}'.format(data['timestamp']))
-                    print('Size: {} kB'.format(data['info']['size'] / 1000))
+                    print('Size: {}'.format(get_size_format(data['info']['size'])))
                     print('Path: {}'.format(data['info']['path']))
                     print('Edit_Time: {}'.format(datetime.datetime.fromtimestamp(data['info']['edit_time'])))
                     print()
@@ -68,7 +70,7 @@ def print_structure(path: str, all:bool=False, track_first: bool=True, raw: bool
                 data = data[str(max([int(x) for x in data.keys()]))]
                 print('Name: {}'.format(data['name']))
                 print('Track Time: {}'.format(data['timestamp']))
-                print('Size: {} kB'.format(data['info']['size']/1000))
+                print('Size: {}'.format(get_size_format(data['info']['size'])))
                 print('Path: {}'.format(data['info']['path']))
                 print('Edit_Time: {}'.format(datetime.datetime.fromtimestamp(data['info']['edit_time'])))
                 print()
@@ -79,4 +81,4 @@ def print_structure(path: str, all:bool=False, track_first: bool=True, raw: bool
 
 
 if __name__ == '__main__':  # only for testing
-    print_structure(os.getcwd(), track_first=False)
+    print_structure(os.getcwd(), os.getcwd(), track_first=False)

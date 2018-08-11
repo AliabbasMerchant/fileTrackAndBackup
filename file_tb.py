@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import constants
 from track import track
 from pull import pull
 from print_structure import print_structure
@@ -16,7 +15,9 @@ if len(sys.argv) <= 1:
     raise AttributeError('Please enter appropriate command-line arguments')
 else:
     if sys.argv[1] == 'track':
-        base_path = os.getcwd()
+        base_path = constants.current_wd
+        params = {'ignore': False}  # 'output': True
+
         if len(sys.argv) > 2:
             if os.path.lexists(sys.argv[2]):
                 if str(sys.argv[2]).startswith('/'):  # is absolute path
@@ -25,17 +26,33 @@ else:
                     base_path = os.getcwd() + '/' + sys.argv[2]  # is absolute path
             else:
                 if sys.argv[2] in ['--ignore']:
-                    base_path = os.getcwd()
+                    pass
                 else:
                     raise FileNotFoundError()
-        else:
-            base_path = os.getcwd()  # is absolute path
-        if '--ignore' in sys.argv:
-            track(base_path, output=True, ignore=True)
-        else:
-            track(base_path, output=True)
 
-    elif sys.argv[1] == 'back_up':
+        base_path = base_path.replace('////', '/')  # safe-side
+        base_path = base_path.replace('///', '/')  # safe-side
+        base_path = base_path.replace('//', '/')
+
+        dir_path = base_path
+        if os.path.isfile(base_path):
+            dir_path = base_path[0: base_path.rindex('/')]
+        os.chdir(dir_path)
+
+        if '--ignore' in sys.argv:
+            params['ignore'] = True
+
+        errors = track(base_path, dir_path, output=True, **params)
+
+        if len(errors) > 0:
+            print()
+            print("The following files/folders do not exist:")
+            for error in errors:
+                print(error)
+
+        os.chdir(constants.current_wd)
+
+    elif sys.argv[1] == 'back_up' or sys.argv[1] == 'pull':
         pull_path = ''
         destination_path = constants.current_wd
         if len(sys.argv) > 2:
@@ -68,7 +85,9 @@ else:
             raise AttributeError('Can back-up to a directory only. Cannot back-up to a file.')
 
     elif sys.argv[1] == 'print':
-        base_path = os.getcwd()
+        base_path = constants.current_wd
+        params = {'all': False, 'track_first': True, 'raw': False}
+
         if len(sys.argv) > 2:
             if os.path.lexists(sys.argv[2]):
                 if str(sys.argv[2]).startswith('/'):  # is absolute path
@@ -77,22 +96,30 @@ else:
                     base_path = os.getcwd() + '/' + sys.argv[2]  # is absolute path
             else:
                 if sys.argv[2] in ['--all', '--no_track', '--raw']:
-                    base_path = os.getcwd()
+                    pass
                 else:
                     raise FileNotFoundError()
-        else:
-            base_path = os.getcwd()
-        params = {'all': False, 'track_first': True, 'raw': False}
+
+        base_path = base_path.replace('////', '/')  # safe-side
+        base_path = base_path.replace('///', '/')  # safe-side
+        base_path = base_path.replace('//', '/')
+
+        dir_path = base_path
+        if os.path.isfile(base_path):
+            dir_path = base_path[0: base_path.rindex('/')]
+        os.chdir(dir_path)
+
         if '--all' in sys.argv:
             params['all'] = True
         if '--no_track' in sys.argv:  # useless, maybe # may cause errors: not tested
             params['track_first'] = False
         if '--raw' in sys.argv:
             params['raw'] = True
-        print_structure(base_path, **params)
+        print_structure(base_path, dir_path, **params)
+        os.chdir(constants.current_wd)
 
     elif sys.argv[1] == 'untrack':
-        base_path = os.getcwd()
+        base_path = constants.current_wd
         if len(sys.argv) > 2:
             if os.path.lexists(sys.argv[2]):
                 if str(sys.argv[2]).startswith('/'):  # is absolute path
@@ -101,11 +128,22 @@ else:
                     base_path = os.getcwd() + '/' + sys.argv[2]  # is absolute path
             else:
                 raise FileNotFoundError()
-        else:
-            base_path = os.getcwd()  # is absolute path
+
+        base_path = base_path.replace('////', '/')  # safe-side
+        base_path = base_path.replace('///', '/')  # safe-side
+        base_path = base_path.replace('//', '/')
+
+        if os.path.isfile(base_path):
+            base_path = base_path[0: base_path.rindex('/')]
+        os.chdir(base_path)
+
         execute_bash("rm -rf " + base_path + '/' + constants.save_folder_name)
         print(base_path + " is no longer tracked")
+        os.chdir(constants.current_wd)
 
+    else:
+        display_help()
+        raise AttributeError('Please enter appropriate command-line arguments')
 
 # Errors:
 # print Test
