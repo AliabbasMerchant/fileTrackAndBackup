@@ -18,7 +18,7 @@ print("Setting Up File_Transfer_Backup (file_tb)...")
 
 with open('constants.py', 'a') as f:
     f.write("\n")
-    f.write("base_path = '" + os.getcwd() + "'")
+    f.write("file_tb_path = '" + os.getcwd() + "'")
     f.write("\n")
 
 print("Making executable file...")

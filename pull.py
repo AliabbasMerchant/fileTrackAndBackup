@@ -24,19 +24,17 @@ def copy(source: str, destination: str):
 
 
 def back_up_dir(source_dict: dict, destination_dict: dict):
-    # {'type': 'dir', 'size': size, 'path': base_path, 'edit_time': int(get_time(stats)), 'stats': stats,
-    #                 'dirs': info}
-    # {'type': 'file', 'size': stats.st_size, 'path': full_path + '/' + entity,
-    #                                      'edit_time': int(get_time(stats)), 'stats': stats}
+    # {'t': 'd', 's': size, 'p': base_path, 'time': get_time(stats),'dirs': info}
+    # {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity, 'time': get_time(stats)}
     for entity in source_dict:
         if entity in destination_dict:
-            if source_dict[entity]['edit_time'] > destination_dict[entity]['edit_time']:
-                copy(source_dict[entity]['path'], destination_dict['path'])
+            if source_dict[entity]['time'] > destination_dict[entity]['time']:
+                copy(source_dict[entity]['p'], destination_dict['p'])
         else:
-            copy(source_dict[entity]['path'], destination_dict['path'])
+            copy(source_dict[entity]['p'], destination_dict['p'])
 
 
-def pull(source_path: str, destination_path: str, track_first: bool=True, ignore: bool=False) -> None:
+def pull(source_path: str, destination_path: str, track_first: bool = True, ignore: bool = False) -> None:
     # source_path is a file or directory
     # destination_path is a directory
     global _source_path, _destination_path, source_structure, destination_structure, _ignore
@@ -51,23 +49,21 @@ def pull(source_path: str, destination_path: str, track_first: bool=True, ignore
         print("Tracked source")
     track(destination_path)
     print("Tracked destination")
-    source_json_name = source_path.strip().split('/')[-1].split('.')[0] + '.json'
+    source_json_name = source_path.strip().split('/')[-1] + '.json'
     destination_json_name = destination_path.strip().split('/')[-1] + '.json'
     if not os.path.lexists(source_path + '/' + constants.save_folder_name + '/' + source_json_name):
         track(source_path, output=False)
     source_structure = read_from_json_file(source_path + '/' + constants.save_folder_name + '/' + source_json_name)
-    track_number = str((max([int(x) for x in source_structure.keys()])))
-    source_structure = source_structure[track_number]['info']
+    source_structure = source_structure['i']
     destination_structure = read_from_json_file(destination_path +
                                                 '/' + constants.save_folder_name + '/' + destination_json_name)
-    track_number = str((max([int(x) for x in destination_structure.keys()])))
-    destination_structure = destination_structure[track_number]['info']
+    destination_structure = destination_structure['i']
     if os.path.isfile(source_path):
         destination_structure = destination_structure['dirs']
-        edit_time = source_structure['edit_time']
-        filename = source_path.strip().split('/')[-1].split('.')[0]
+        edit_time = source_structure['time']
+        filename = source_path.strip().split('/')[-1]
         if filename in destination_structure.keys():
-            if edit_time > destination_structure[filename]['edit_time']:
+            if edit_time > destination_structure[filename]['time']:
                 copy(source_path, destination_path)
         else:
             copy(source_path, destination_path)
@@ -87,6 +83,7 @@ def pull(source_path: str, destination_path: str, track_first: bool=True, ignore
 
 if __name__ == '__main__':  # only for testing
     from pprint import pprint as pp
+
     file_name = os.getcwd().split('/')[-1] + '.json'
     _data = read_from_json_file(os.getcwd() + '/' + constants.save_folder_name + '/' + file_name)
     pp(_data)

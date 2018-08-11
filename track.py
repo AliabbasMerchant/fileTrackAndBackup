@@ -1,35 +1,42 @@
 #! /usr/bin/python3
 from help import *
+import time
 
-# dict[file_name] = (type, size, full_path, time, stat)
-# dict[dir_name] = (type, size, full_path, time, stat, dict)
+# short-forms are used, so as to reduce the .json file size
+# t : type - d or f
+# d : directory
+# f : file
+# ts : timestamp
+# dirs : The dictionary containing info about directory contents
+# time : edit time of the file/folder
+# s : size of the file/folder
+# p : full path of the file/folder
+# n : name of the main file/folder in the .json file
+# i : info about the contents in the .json file
+
+# folder = {'t': 'd', 's': get_size(dir_dict), 'p': full_path + '/' + entity, 'time': get_time(stats), 'dirs': dir_dict}
+# file = {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity, 'time': get_time(stats)}
+
+# info = {'t': 'd', 's': size, 'p': base_path, 'time': get_time(stats), 'dirs': info}
+# write = {'n': examine_name, 'ts': time.time(), 'i': info}
+
+# info = {'t': 'f', 's': stats.st_size, 'p': base_path, 'time': get_time(stats)}
+# write = {'n': examine_name, 'ts': time.time(), 'i': info}
 
 no_of_files = 0
 no_of_dirs = 0
-# examine_name = ''
-track_number = 0
 examine_name = ''
 save_filename = ''
-data = dict()
 _base_path = None
 _ignore = False
 errors = []
 
 
 def get_save_config(base_path: str) -> None:
-    global track_number, examine_name, save_filename, data
-    if os.path.isfile(base_path):
-        examine_name = base_path.strip().split('/')[-1].split('.')[0]
-    else:
-        examine_name = base_path.strip().split('/')[-1]
-    examine_name.strip('.')  # for folders that begin with '.'
+    global examine_name, save_filename
+    examine_name = base_path.strip().split('/')[-1]
     save_filename = examine_name + '.json'
-    save_filename.strip('.')
-    if os.path.lexists(constants.save_folder_name):
-        if os.path.lexists(constants.save_folder_name + "/" + save_filename):
-            data = read_from_json_file(constants.save_folder_name + "/" + save_filename)
-            track_number = (max([int(x) for x in data.keys()])) + 1
-    else:
+    if not os.path.lexists(constants.save_folder_name):
         execute_bash("mkdir " + constants.save_folder_name)
 
 
@@ -55,19 +62,19 @@ def get_info_dict(sub_path: str) -> dict:
                     no_of_dirs += 1
                     new_sub_path = sub_path + '/' + entity
                     dir_dict = get_info_dict(new_sub_path)
-                    edit_dict[entity] = {'type': 'dir', 'size': get_size(dir_dict), 'path': full_path + '/' + entity,
-                                         'edit_time': get_time(stats), 'stats': stats, 'dirs': dir_dict}
+                    edit_dict[entity] = {'t': 'd', 's': get_size(dir_dict), 'p': full_path + '/' + entity,
+                                         'time': get_time(stats), 'dirs': dir_dict}
                 if os.path.isfile(full_path + '/' + entity):
                     no_of_files += 1
-                    edit_dict[entity] = {'type': 'file', 'size': stats.st_size, 'path': full_path + '/' + entity,
-                                         'edit_time': int(get_time(stats)), 'stats': stats}
+                    edit_dict[entity] = {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity,
+                                         'time': get_time(stats)}
             except FileNotFoundError:
                 errors.append(full_path + '/' + entity)
     return edit_dict
 
 
 def track(base_path: str, dir_path: str, output: bool = False, ignore: bool = False) -> list:
-    global _base_path, no_of_dirs, no_of_files, save_filename, data, track_number, _ignore, errors
+    global _base_path, no_of_dirs, no_of_files, save_filename, _ignore, errors
     print("Tracking...")
     _base_path = base_path
     _ignore = ignore
@@ -79,11 +86,9 @@ def track(base_path: str, dir_path: str, output: bool = False, ignore: bool = Fa
         size = get_size(info)
         no_of_dirs += 1
         stats = os.stat(base_path)
-        info = {'type': 'dir', 'size': size, 'path': base_path, 'edit_time': int(get_time(stats)), 'stats': stats,
-                'dirs': info}
-        write = {'name': examine_name, 'timestamp': time.time(), 'info': info}
-        data[track_number] = write
-        write_to_json_file(data, constants.save_folder_name + "/" + save_filename)
+        info = {'t': 'd', 's': size, 'p': base_path, 'time': get_time(stats), 'dirs': info}
+        write = {'n': examine_name, 'ts': time.time(), 'i': info}
+        write_to_json_file(write, constants.save_folder_name + "/" + save_filename)
         if output:
             print("Successfully analysed the folder")
             print("Found {} folder(s)".format(no_of_dirs))
@@ -94,11 +99,9 @@ def track(base_path: str, dir_path: str, output: bool = False, ignore: bool = Fa
     else:
         no_of_files += 1
         stats = os.stat(base_path)
-        info = {'type': 'file', 'size': stats.st_size, 'path': base_path, 'edit_time': int(get_time(stats)),
-                'stats': stats}
-        write = {'name': examine_name, 'timestamp': time.time(), 'info': info}
-        data[track_number] = write
-        write_to_json_file(data, constants.save_folder_name + "/" + save_filename)
+        info = {'t': 'f', 's': stats.st_size, 'p': base_path, 'time': get_time(stats)}
+        write = {'n': examine_name, 'ts': time.time(), 'i': info}
+        write_to_json_file(write, constants.save_folder_name + "/" + save_filename)
         if output:
             print("Successfully analysed the file")
             print("The file is of size {}".format(get_size_format(stats.st_size)))
