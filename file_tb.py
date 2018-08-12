@@ -29,7 +29,7 @@ else:
                 if sys.argv[2] in ['--ignore']:
                     pass
                 else:
-                    raise FileNotFoundError()
+                    raise FileNotFoundError("Could not find the file/folder: {}".format(sys.argv[2]))
 
         dir_path = base_path
         if os.path.isfile(base_path):
@@ -58,7 +58,7 @@ else:
                     pull_path = current_wd + '/' + sys.argv[2]  # is absolute path
                     pull_path = pull_path.replace('//', '/')
             else:
-                raise FileNotFoundError()
+                raise FileNotFoundError("Could not find the file/folder: {}".format(sys.argv[2]))
         else:
             display_help()
             raise AttributeError('Please enter appropriate command-line arguments')
@@ -101,7 +101,7 @@ else:
                 if sys.argv[2] in ['--no_track', '--raw', '--ignore']:
                     pass
                 else:
-                    raise FileNotFoundError()
+                    raise FileNotFoundError("Could not find the file/folder: {}".format(sys.argv[2]))
 
         dir_path = base_path
         if os.path.isfile(base_path):
@@ -127,7 +127,7 @@ else:
                     base_path = current_wd + '/' + sys.argv[2]  # is absolute path
                     base_path = base_path.replace('//', '/')
             else:
-                raise FileNotFoundError()
+                raise FileNotFoundError("Could not find the file/folder: {}".format(sys.argv[2]))
 
         if os.path.isfile(base_path):
             base_path = base_path[0: base_path.rindex('/')]

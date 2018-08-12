@@ -12,28 +12,32 @@ errors = []
 def copy(source: str, destination: str):
     global errors
     # both are absolute paths
-    # Test
-    assert source.startswith('/')
-    assert destination.startswith('/')
     # destination is always a directory
     # source may be file/directory
-    # TODO
-    print(source, destination)  # test
-    if _ignore:
-        if os.path.isfile(source):
+    if not os.path.islink(source):
+        if _ignore:
             if not to_be_ignored(source):
-                op, err = execute_bash("cp '" + source + "' '" + destination + "' -p")
+                if os.path.isfile(source):
+                    # print(source,destination)  # Test
+                    op, err = execute_bash("cp -r -p {} {}".format(source, destination))
+                    if err is not None:
+                        errors.append(err)
+                else:
+                    new_dir = destination + '/' + source.strip('/').split('/')[-1]
+                    try:
+                        _ = source.index(constants.save_folder_name)
+                    except ValueError:  # copy only if it is not the "save_folder_name" folder
+                        execute_bash("mkdir '{}'".format(new_dir))
+                        for element in os.listdir(source):
+                            copy(source + '/' + element, new_dir)
+        else:
+            try:
+                _ = source.index(constants.save_folder_name)
+            except ValueError:  # copy only if it is not the "save_folder_name" folder
+                # print(source, destination)  # Test
+                op, err = execute_bash("cp -r -p {} {}".format(source, destination))
                 if err is not None:
                     errors.append(err)
-        else:
-            new_dir = destination + '/' + source.strip('/').split('/')[-1]
-            execute_bash("mkdir '" + new_dir + "'")
-            for element in os.listdir(source):
-                copy(source + '/' + element, new_dir)
-    else:
-        op, err = execute_bash("cp '" + source + "' '" + destination + "' -p")
-        if err is not None:
-            errors.append(err)
 
 
 def back_up_dir(source_dict: dict, destination_dict: dict):
@@ -42,10 +46,11 @@ def back_up_dir(source_dict: dict, destination_dict: dict):
     for entity in source_dict['dirs']:
         if entity in destination_dict['dirs']:
             if source_dict['dirs'][entity]['time'] > destination_dict['dirs'][entity]['time']:
-                if os.path.isfile(source_dict['dirs'][entity]):
-                    copy(source_dict['dirs'][entity]['p'], destination_dict['p'])
-                else:
-                    back_up_dir(source_dict['dirs'][entity], destination_dict['dirs'][entity])
+                if not os.path.islink(source_dict['dirs'][entity]['p']):
+                    if os.path.isfile(source_dict['dirs'][entity]['p']):
+                        copy(source_dict['dirs'][entity]['p'], destination_dict['p'])
+                    else:
+                        back_up_dir(source_dict['dirs'][entity], destination_dict['dirs'][entity])
         else:
             copy(source_dict['dirs'][entity]['p'], destination_dict['p'])
 

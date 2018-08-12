@@ -53,21 +53,20 @@ def get_info_dict(sub_path: str) -> dict:
         ignore_it = False
         if _ignore and to_be_ignored(full_path + '/' + entity):  # ignoring cache temp etc files
             ignore_it = True
-        # if entity == constants.save_folder_name:
-        #     ignore_it = True
         if not ignore_it:
             try:
                 stats = os.stat(full_path + '/' + entity)
-                if os.path.isdir(full_path + '/' + entity):
-                    no_of_dirs += 1
-                    new_sub_path = sub_path + '/' + entity
-                    dir_dict = get_info_dict(new_sub_path)
-                    edit_dict[entity] = {'t': 'd', 's': get_size(dir_dict), 'p': full_path + '/' + entity,
-                                         'time': get_time(stats), 'dirs': dir_dict}
-                if os.path.isfile(full_path + '/' + entity):
-                    no_of_files += 1
-                    edit_dict[entity] = {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity,
-                                         'time': get_time(stats)}
+                if not os.path.islink(full_path + '/' + entity):
+                    if os.path.isdir(full_path + '/' + entity):
+                        no_of_dirs += 1
+                        new_sub_path = sub_path + '/' + entity
+                        dir_dict = get_info_dict(new_sub_path)
+                        edit_dict[entity] = {'t': 'd', 's': get_size(dir_dict), 'p': full_path + '/' + entity,
+                                             'time': get_time(stats), 'dirs': dir_dict}
+                    if os.path.isfile(full_path + '/' + entity):
+                        no_of_files += 1
+                        edit_dict[entity] = {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity,
+                                             'time': get_time(stats)}
             except FileNotFoundError:
                 errors.append(full_path + '/' + entity)
     return edit_dict
@@ -75,6 +74,8 @@ def get_info_dict(sub_path: str) -> dict:
 
 def track(base_path: str, dir_path: str, output: bool = False, ignore: bool = False) -> list:
     global _base_path, no_of_dirs, no_of_files, save_filename, _ignore, errors
+    no_of_dirs = 0
+    no_of_files = 0
     print("Tracking...")
     _base_path = base_path
     _ignore = ignore
@@ -90,7 +91,7 @@ def track(base_path: str, dir_path: str, output: bool = False, ignore: bool = Fa
         write = {'n': examine_name, 'ts': time.time(), 'i': info}
         write_to_json_file(write, constants.save_folder_name + "/" + save_filename)
         if output:
-            print("Successfully analysed the folder")
+            print("Successfully analysed the folder " + base_path)
             print("Found {} folder(s)".format(no_of_dirs))
             print("Found {} file(s)".format(no_of_files))
             print("The directory is of size {}".format(get_size_format(size)))

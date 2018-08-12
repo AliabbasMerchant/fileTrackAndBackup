@@ -32,10 +32,11 @@ def print_structure(path: str, dir_path: str, track_first: bool = True, raw: boo
     if os.path.isfile(path):
         filename = path.split('/')[-1]
         print('Name: {}'.format(filename))
-        print('Track Time: {}'.format(datetime.datetime.timestamp(datetime.datetime.now())))
+        print('Track Time: {}'.format(datetime.datetime.fromtimestamp(
+            datetime.datetime.timestamp(datetime.datetime.now()))))
         print('Size: {}'.format(get_size_format(os.stat(filename).st_size)))
         print('Path: {}'.format(path))
-        print('Edit_Time: {}'.format(datetime.datetime.fromtimestamp(get_time(os.stat(path)))))
+        print('Edit Time: {}'.format(datetime.datetime.fromtimestamp(get_time(os.stat(path)))))
     elif os.path.isdir(path):
         filename = path.split('/')[-1] + '.json'
         try:
@@ -46,10 +47,10 @@ def print_structure(path: str, dir_path: str, track_first: bool = True, raw: boo
             pp(data)
         else:
             print('Name: {}'.format(data['n']))
-            print('Track Time: {}'.format(data['ts']))
+            print('Track Time: {}'.format(datetime.datetime.fromtimestamp(data['ts'])))
             print('Size: {}'.format(get_size_format(data['i']['s'])))
             print('Path: {}'.format(data['i']['p']))
-            print('Edit_Time: {}'.format(datetime.datetime.fromtimestamp(data['i']['time'])))
+            print('Edit Time: {}'.format(datetime.datetime.fromtimestamp(data['i']['time'])))
             print()
             print('Directory Structure:')
             dir_info = data['i']['dirs']
