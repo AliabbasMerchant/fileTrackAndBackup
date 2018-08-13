@@ -73,8 +73,8 @@ else:
             params = {'ignore': False, 'track_first': True}
             if '--ignore' in sys.argv:
                 params['ignore'] = True
-            # if '--no_track' in sys.argv:  # useless, maybe # may cause errors: not tested
-            #     params['track_first'] = False
+            if '--no_track' in sys.argv:  # may cause errors
+                params['track_first'] = False
             os.chdir(destination_path)
             errors = pull(pull_path, destination_path, **params)
             if len(errors) > 0:
@@ -108,7 +108,7 @@ else:
             dir_path = base_path[0: base_path.rindex('/')]
         os.chdir(dir_path)
 
-        if '--no_track' in sys.argv:  # useless, maybe # may cause errors: not tested
+        if '--no_track' in sys.argv:  # may give wrong file list
             params['track_first'] = False
         if '--raw' in sys.argv:
             params['raw'] = True
