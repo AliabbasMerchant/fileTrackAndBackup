@@ -48,27 +48,30 @@ def get_info_dict(sub_path: str) -> dict:
         full_path = full_path[:-1]
     edit_dict = dict()
 
-    entity_list = os.listdir(full_path)
-    for entity in entity_list:
-        ignore_it = False
-        if _ignore and to_be_ignored(full_path + '/' + entity):  # ignoring cache temp etc files
-            ignore_it = True
-        if not ignore_it:
-            try:
-                stats = os.stat(full_path + '/' + entity)
-                if not os.path.islink(full_path + '/' + entity):
-                    if os.path.isdir(full_path + '/' + entity):
-                        no_of_dirs += 1
-                        new_sub_path = sub_path + '/' + entity
-                        dir_dict = get_info_dict(new_sub_path)
-                        edit_dict[entity] = {'t': 'd', 's': get_size(dir_dict), 'p': full_path + '/' + entity,
-                                             'time': get_time(stats), 'dirs': dir_dict}
-                    if os.path.isfile(full_path + '/' + entity):
-                        no_of_files += 1
-                        edit_dict[entity] = {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity,
-                                             'time': get_time(stats)}
-            except FileNotFoundError:
-                errors.append(full_path + '/' + entity)
+    try:
+        entity_list = os.listdir(full_path)
+        for entity in entity_list:
+            ignore_it = False
+            if _ignore and to_be_ignored(full_path + '/' + entity):  # ignoring cache temp etc files
+                ignore_it = True
+            if not ignore_it:
+                try:
+                    stats = os.stat(full_path + '/' + entity)
+                    if not os.path.islink(full_path + '/' + entity):
+                        if os.path.isdir(full_path + '/' + entity):
+                            no_of_dirs += 1
+                            new_sub_path = sub_path + '/' + entity
+                            dir_dict = get_info_dict(new_sub_path)
+                            edit_dict[entity] = {'t': 'd', 's': get_size(dir_dict), 'p': full_path + '/' + entity,
+                                                 'time': get_time(stats), 'dirs': dir_dict}
+                        if os.path.isfile(full_path + '/' + entity):
+                            no_of_files += 1
+                            edit_dict[entity] = {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity,
+                                                 'time': get_time(stats)}
+                except FileNotFoundError:
+                    errors.append(full_path + '/' + entity)
+    except PermissionError:
+        errors.append(full_path)
     return edit_dict
 
 
@@ -95,8 +98,7 @@ def track(base_path: str, dir_path: str, output: bool = False, ignore: bool = Fa
             print("Found {} folder(s)".format(no_of_dirs))
             print("Found {} file(s)".format(no_of_files))
             print("The directory is of size {}".format(get_size_format(size)))
-            print("A detailed report can be found in " +
-                  dir_path + "/" + constants.save_folder_name + "/" + save_filename)
+            print("A detailed report can be found using the 'file_tb.py print [FILE/FOLDER]' command ")
     else:
         no_of_files += 1
         stats = os.stat(base_path)
@@ -106,8 +108,7 @@ def track(base_path: str, dir_path: str, output: bool = False, ignore: bool = Fa
         if output:
             print("Successfully analysed the file")
             print("The file is of size {}".format(get_size_format(stats.st_size)))
-            print("A detailed report can be found in " +
-                  dir_path + "/" + constants.save_folder_name + "/" + save_filename)
+            print("A detailed report can be found using the 'file_tb.py print [FILE/FOLDER]' command ")
     # pp(info)
     return errors
 

@@ -27,7 +27,6 @@ def get_size(dir_dict: dict) -> int:
 
 
 def write_to_json_file(dictionary: dict, filename: str) -> None:
-    # os.open(filename, os.O_CREAT)
     with open(filename, 'w') as outfile:
         json.dump(dictionary, outfile, indent=2)
 
@@ -39,10 +38,9 @@ def read_from_json_file(filename: str) -> dict:
 
 
 def get_ignore_list() -> None:
-    with open("{}/{}/{}".format(constants.file_tb_path, constants.save_folder_name, constants.ignore_file), 'r') as f:
+    with open("{}/{}".format(constants.file_tb_path, constants.ignore_file), 'r') as f:
         for line in f:
-            constants.ignore_regex_list.append(line)
-    # print(constants.ignore_regex_list)
+            constants.ignore_regex_list.append(line.strip())
 
 
 def display_help() -> None:
@@ -63,7 +61,7 @@ def get_size_format(size: int) -> str:
 
 def to_be_ignored(source: str) -> bool:
     source = source.replace('//', '/')
-    for regex in constants.ignore_regex_list:
-        if re.search(regex, source):
+    for pattern in constants.ignore_regex_list:
+        if re.search(pattern, source):
             return True
     return False

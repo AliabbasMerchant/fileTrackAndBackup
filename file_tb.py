@@ -42,7 +42,7 @@ else:
         errors = track(base_path, dir_path, output=True, **params)
         if len(errors) > 0:
             print()
-            print("The following files/folders do not exist:")
+            print("There was a problem tracking the following files/folders:")
             for error in errors:
                 print(error)
         os.chdir(current_wd)
@@ -129,11 +129,13 @@ else:
             else:
                 raise FileNotFoundError("Could not find the file/folder: {}".format(sys.argv[2]))
 
+        dir_path = base_path
         if os.path.isfile(base_path):
-            base_path = base_path[0: base_path.rindex('/')]
-        os.chdir(base_path)
+            dir_path = base_path[0: base_path.rindex('/')]
+        os.chdir(dir_path)
+        name = base_path.strip().split('/')[-1] + '.json'
 
-        execute_bash("rm -rf '" + base_path + "/" + constants.save_folder_name + "'")
+        execute_bash("rm -rf " + dir_path + "/" + constants.save_folder_name + "/" + name)
         print(base_path + " is no longer tracked")
         os.chdir(current_wd)
 

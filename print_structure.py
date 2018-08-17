@@ -11,7 +11,7 @@ def print_dir(data: dict, level: int) -> None:
                 for i in range(3 * (level - 1)):
                     print(' ', end='')
                 print('|__', end='')
-            print(name, "(Size: {}, Edit_Time: {})"
+            print(name, "(Size: {}, Edit Time: {})"
                   .format(get_size_format(data[name]['s']),
                           datetime.datetime.fromtimestamp(data[name]['time'])))
     for name in data.keys():
@@ -20,7 +20,7 @@ def print_dir(data: dict, level: int) -> None:
                 for i in range(3 * (level - 1)):
                     print(' ', end='')
                 print('|__', end='')
-            print(name, "(Size: {}, Edit_Time: {})"
+            print(name, "(Size: {}, Edit Time: {})"
                   .format(get_size_format(data[name]['s']),
                           datetime.datetime.fromtimestamp(data[name]['time'])))
             print_dir(data[name]['dirs'], level + 1)
@@ -29,32 +29,33 @@ def print_dir(data: dict, level: int) -> None:
 def print_structure(path: str, dir_path: str, track_first: bool = True, raw: bool = False, ignore: bool = False) -> None:
     if track_first:
         track(path, dir_path, output=False, ignore=ignore)
-    if os.path.isfile(path):
-        filename = path.split('/')[-1]
-        print('Name: {}'.format(filename))
-        print('Track Time: {}'.format(datetime.datetime.fromtimestamp(
-            datetime.datetime.timestamp(datetime.datetime.now()))))
-        print('Size: {}'.format(get_size_format(os.stat(filename).st_size)))
-        print('Path: {}'.format(path))
-        print('Edit Time: {}'.format(datetime.datetime.fromtimestamp(get_time(os.stat(path)))))
-    elif os.path.isdir(path):
-        filename = path.split('/')[-1] + '.json'
-        try:
-            data = read_from_json_file(dir_path + '/' + constants.save_folder_name + '/' + filename)
-        except FileNotFoundError:
-            raise FileNotFoundError("The folder is not tracked. Please track it first")
-        if raw:
-            pp(data)
-        else:
-            print('Name: {}'.format(data['n']))
-            print('Track Time: {}'.format(datetime.datetime.fromtimestamp(data['ts'])))
-            print('Size: {}'.format(get_size_format(data['i']['s'])))
-            print('Path: {}'.format(data['i']['p']))
-            print('Edit Time: {}'.format(datetime.datetime.fromtimestamp(data['i']['time'])))
-            print()
-            print('Directory Structure:')
-            dir_info = data['i']['dirs']
-            print_dir(dir_info, 0)
+    filename = path.strip().split('/')[-1] + '.json'
+    try:
+        data = read_from_json_file(dir_path + '/' + constants.save_folder_name + '/' + filename)
+        if os.path.isfile(path):
+            if raw:
+                pp(data)
+            else:
+                print('Name: {}'.format(data['n']))
+                print('Track Time: {}'.format(datetime.datetime.fromtimestamp(data['ts'])))
+                print('Size: {}'.format(get_size_format(data['i']['s'])))
+                print('Path: {}'.format(data['i']['p']))
+                print('Edit Time: {}'.format(datetime.datetime.fromtimestamp(data['i']['time'])))
+        elif os.path.isdir(path):
+            if raw:
+                pp(data)
+            else:
+                print('Name: {}'.format(data['n']))
+                print('Track Time: {}'.format(datetime.datetime.fromtimestamp(data['ts'])))
+                print('Size: {}'.format(get_size_format(data['i']['s'])))
+                print('Path: {}'.format(data['i']['p']))
+                print('Edit Time: {}'.format(datetime.datetime.fromtimestamp(data['i']['time'])))
+                print('Directory Structure:')
+                print()
+                dir_info = data['i']['dirs']
+                print_dir(dir_info, 0)
+    except FileNotFoundError:
+        print("The folder is not tracked. Please track it first")
 
 
 if __name__ == '__main__':  # only for testing

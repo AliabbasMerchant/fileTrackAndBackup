@@ -28,8 +28,11 @@ def copy(source: str, destination: str):
                         _ = source.index(constants.save_folder_name)
                     except ValueError:  # copy only if it is not the "save_folder_name" folder
                         execute_bash("mkdir '{}'".format(new_dir))
-                        for element in os.listdir(source):
-                            copy(source + '/' + element, new_dir)
+                        try:
+                            for element in os.listdir(source):
+                                copy(source + '/' + element, new_dir)
+                        except PermissionError as e:
+                            errors.append(e)
         else:
             try:
                 _ = source.index(constants.save_folder_name)
@@ -72,10 +75,10 @@ def pull(source_path: str, destination_path: str, track_first: bool = True, igno
         source_dir_path = source_dir_path[0: source_dir_path.rindex('/')]
     if track_first or (not os.path.lexists(source_dir_path + '/' + constants.save_folder_name + '/' + source_json_name)):
         os.chdir(source_dir_path)
-        track(source_path, source_dir_path, output=False)
+        track(source_path, source_dir_path, output=False, ignore=_ignore)
         print("Tracked source")
         os.chdir(destination_path)
-    track(destination_path, destination_path, output=False)
+    track(destination_path, destination_path, output=False, ignore=_ignore)
     print("Tracked destination")
     source_structure = read_from_json_file(source_dir_path + '/' + constants.save_folder_name + '/' + source_json_name)
     source_structure = source_structure['i']
@@ -101,7 +104,7 @@ def pull(source_path: str, destination_path: str, track_first: bool = True, igno
             back_up_dir(source_structure, destination_structure['dirs'][source_name])
         else:
             copy(source_path, destination_path)
-    track(destination_path, destination_path, output=True)
+    track(destination_path, destination_path, output=True, ignore=_ignore)
     print("All file(s) have been backed-up successfully")
     return errors
 
