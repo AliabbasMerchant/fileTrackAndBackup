@@ -69,6 +69,10 @@ else:
                 else:  # is relative path
                     destination_path = current_wd + '/' + sys.argv[3]  # is absolute path
                     destination_path = destination_path.replace('//', '/')
+            elif sys.argv[2] in ['--ignore', '--no_track']:
+                pass
+            else:
+                raise FileNotFoundError("Could not find the file/folder: {}".format(sys.argv[3]))
         if os.path.isdir(destination_path):
             params = {'ignore': False, 'track_first': True}
             if '--ignore' in sys.argv:
