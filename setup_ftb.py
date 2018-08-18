@@ -16,10 +16,16 @@ def execute_bash(command: str) -> (str, str):
 print("Welcome!")
 print("Setting Up File_Transfer_Backup (file_tb)...")
 
-with open('constants.py', 'a') as f:
-    f.write("\n")
-    f.write("file_tb_path = '" + os.getcwd() + "'")
-    f.write("\n")
+with open('constants.py', 'r') as f:
+    lines = f.readlines()
+
+with open('constants.py', 'w') as f:
+    for line in lines:
+        if not line.startswith("file_tb_path ="):
+            f.write(line)
+        else:
+            f.write("file_tb_path = '" + os.getcwd() + "'")
+            f.write("\n")
 
 print("Making executable file...")
 op, err = execute_bash("chmod +rwx file_tb.py")
