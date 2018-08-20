@@ -15,6 +15,24 @@ def execute_bash(command: str) -> (str, str):
     return output, error
 
 
+def cp(source: str, destination: str) -> (str, str):
+    source = source.replace("//", "/")
+    destination = destination.replace("//", "/")
+    # if ' ' in source:
+    #     source = '"' + source + '"'
+    # if ' ' in destination:
+    #     destination = '"' + destination + '"'
+    # execute_bash("cp -r -p {} {}".format(source, destination))
+    command_list = ["cp", "-r", "-p", source, destination]
+    process = subprocess.Popen(command_list, stdout=subprocess.PIPE)
+    output, error = process.communicate()
+    if output is not None:
+        output = output.decode('ascii')
+    if error is not None:
+        error = error.decode('ascii')
+    return output, error
+
+
 def get_time(file_info: os.stat_result) -> int:
     return int(max(file_info.st_atime, file_info.st_ctime, file_info.st_mtime))
 

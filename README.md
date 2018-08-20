@@ -38,6 +38,8 @@ DESTINATION FOLDER: The relative or absolute path of a folder where the SOURCE i
 Options:  
 `--ignore`: Ignore some files/folders (See [IGNORE](#ignore-filesfolders))  
 `--no_track`: Will not track the SOURCE before backing-up
+`--copy_all`: Will force check for the presence of all files. The edit-time of files are considered, and edit-time of folders are disregarded.
+(Useful to restore files gone missing from the destination anytime after the source is edited) (Recommended)
 
 4. To untrack a file/folder:  
 `file_tb.py untrack [FILE/FOLDER]`  
@@ -67,8 +69,9 @@ along with their size and edit-time
 * The `pull` or `back_up` command does the following:
     1. Track the SOURCE (except if the `--no_track` command is used)
     2. Track the DESTINATION
-    3. Iterate over each file and folder in the SOURCE folder tree. If it is not present in the DESTINATION, it is copied.
-    If it is already present in the DESTINATION, the edit-time of both the files/folders are compared; the latest file/folder is kept in the DESTINATION
+    3. Iterate over each file and folder in the SOURCE folder tree. If it is not present in the DESTINATION, it is copied.  
+    If it is already present in the DESTINATION, the edit-time of both the files/folders are compared; the latest file/folder is kept in the DESTINATION.  
+    If the option `--copy_all` is used, the edit-time of folders is disregarded, and the edit-times of each and every file is checked; the latest file is kept in the DESTINATION. 
     4. Track the DESTINATION
 ---
 * The `untrack` command deletes the json file

@@ -7,6 +7,7 @@ _ignore = False
 source_structure = dict()
 destination_structure = dict()
 errors = []
+_copy_all = False
 
 
 def copy(source: str, destination: str):
@@ -18,8 +19,7 @@ def copy(source: str, destination: str):
         if _ignore:
             if not to_be_ignored(source):
                 if os.path.isfile(source):
-                    # print(source,destination)  # Test
-                    op, err = execute_bash("cp -r -p {} {}".format(source, destination))
+                    op, err = cp(source, destination)
                     if err is not None:
                         errors.append(err)
                 else:
@@ -37,8 +37,7 @@ def copy(source: str, destination: str):
             try:
                 _ = source.index(constants.save_folder_name)
             except ValueError:  # copy only if it is not the "save_folder_name" folder
-                # print(source, destination)  # Test
-                op, err = execute_bash("cp -r -p {} {}".format(source, destination))
+                op, err = cp(source, destination)
                 if err is not None:
                     errors.append(err)
 
@@ -46,9 +45,13 @@ def copy(source: str, destination: str):
 def back_up_dir(source_dict: dict, destination_dict: dict):
     # {'t': 'd', 's': size, 'p': base_path, 'time': get_time(stats),'dirs': info}
     # {'t': 'f', 's': stats.st_size, 'p': full_path + '/' + entity, 'time': get_time(stats)}
+    global _copy_all
     for entity in source_dict['dirs']:
         if entity in destination_dict['dirs']:
-            if source_dict['dirs'][entity]['time'] > destination_dict['dirs'][entity]['time']:
+            force = False
+            if os.path.isdir(source_dict['dirs'][entity]['p']) and _copy_all:
+                force = True
+            if source_dict['dirs'][entity]['time'] > destination_dict['dirs'][entity]['time'] or force:
                 if not os.path.islink(source_dict['dirs'][entity]['p']):
                     if os.path.isfile(source_dict['dirs'][entity]['p']):
                         copy(source_dict['dirs'][entity]['p'], destination_dict['p'])
@@ -58,14 +61,15 @@ def back_up_dir(source_dict: dict, destination_dict: dict):
             copy(source_dict['dirs'][entity]['p'], destination_dict['p'])
 
 
-def pull(source_path: str, destination_path: str, track_first: bool = True, ignore: bool = False) -> list:
+def pull(source_path: str, destination_path: str, track_first: bool = True, ignore: bool = False, copy_all: bool = False) -> list:
     # source_path is a file or directory
     # destination_path is a directory
-    global _source_path, _destination_path, source_structure, destination_structure, _ignore, errors
+    global _source_path, _destination_path, source_structure, destination_structure, _ignore, errors, _copy_all
     print("Starting Backup! Please don't turn off your computer till the process finishes.")
     _source_path = source_path
     _destination_path = destination_path
     _ignore = ignore
+    _copy_all = copy_all
     if _ignore:
         get_ignore_list()
     source_json_name = source_path.strip().split('/')[-1] + '.json'
@@ -104,8 +108,8 @@ def pull(source_path: str, destination_path: str, track_first: bool = True, igno
             back_up_dir(source_structure, destination_structure['dirs'][source_name])
         else:
             copy(source_path, destination_path)
-    track(destination_path, destination_path, output=True, ignore=_ignore)
     print("All file(s) have been backed-up successfully")
+    track(destination_path, destination_path, output=True, ignore=_ignore)
     return errors
 
 
